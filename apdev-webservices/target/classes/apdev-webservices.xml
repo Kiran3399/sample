@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8082" doc:name="HTTP Listener Configuration"/>
+    <http:request-config name="HTTP_Request_Configuration" host="mu.mulesoft-training.com" port="80" doc:name="HTTP Request Configuration"/>
+    <flow name="apdev-webservicesFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/united" doc:name="HTTP"/>
+        <http:request config-ref="HTTP_Request_Configuration" path="/essentials/united/flights" method="GET" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="35b25a2a-b2d7-48d8-8f29-ce81fc51d3ee">
+            <dw:input-payload mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+	airline: payload.flights.airlineName,
+	flightCode: payload.flights.destination,
+	fromAirportCode: payload.flights.origin,
+	toAirportCode: payload.flights.code,
+	departureDate: payload.flights.departureDate,
+	emptySeats: payload.flights.emptySeats,
+	price: payload.flights.price,
+	planeType: payload.flights.planeType
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <logger message="#[payload]" level="INFO" category="apdev-webservices" doc:name="Logger"/>
+    </flow>
+</mule>
